@@ -14,7 +14,7 @@ Prosta przeglądarkowa aplikacja do dodawania znaków wodnych do zdjęć.
 
 ## Prywatność
 
-Wszystko dzieje się w przeglądarce. Żaden plik nie opuszcza urządzenia — zero uploadu, zero serwera.
+Wszystko dzieje się w przeglądarce. Żaden plik nie opuszcza urządzenia - zero uploadu, zero serwera.
 
 ## Użycie
 
