@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Znak Wodny</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        #f2f0ec;
+            --surface:   #ffffff;
+            --surface2:  #f7f5f2;
+            --border:    #ddd9d3;
+            --amber:     #b8860b;
+            --amber-dim: #9a7009;
+            --text:      #1a1814;
+            --text-dim:  #6b6560;
+            --text-muted:#aaa49e;
+            --r:         4px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'IBM Plex Mono', 'Courier New', monospace;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Header ── */
+        header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.9rem;
+            letter-spacing: 0.12em;
+            color: var(--amber);
+            line-height: 1;
+        }
+
+        .header-sub {
+            font-size: 0.62rem;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* ── Layout ── */
+        .app {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+            overflow: hidden;
+            height: 0;
+        }
+
+        /* ── Controls panel ── */
+        .controls {
+            width: 300px;
+            min-width: 300px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 20px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .section-label {
+            font-size: 0.6rem;
+            letter-spacing: 0.25em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        /* ── Drop zone ── */
+        .drop-zone {
+            position: relative;
+            border: 1px dashed var(--border);
+            border-radius: var(--r);
+            padding: 22px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            background: var(--surface2);
+            overflow: hidden;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            border-color: var(--amber);
+            background: rgba(232, 197, 71, 0.04);
+        }
+
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .drop-icon {
+            font-size: 1.6rem;
+            color: var(--amber);
+            margin-bottom: 6px;
+            opacity: 0.7;
+        }
+
+        .drop-text {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .drop-filename {
+            margin-top: 6px;
+            font-size: 0.68rem;
+            color: var(--amber);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ── Text input ── */
+        input[type="text"] {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            color: var(--text);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.82rem;
+            padding: 10px 12px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus { border-color: var(--amber); }
+        input[type="text"]::placeholder { color: var(--text-muted); }
+
+        /* ── Mode buttons ── */
+        .mode-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .mode-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 13px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            color: var(--text-dim);
+            cursor: pointer;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.76rem;
+            transition: border-color 0.18s, color 0.18s, background 0.18s;
+            text-align: left;
+            width: 100%;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--amber-dim);
+            color: var(--text);
+        }
+
+        .mode-btn.active {
+            border-color: var(--amber);
+            color: var(--amber);
+            background: rgba(232, 197, 71, 0.07);
+        }
+
+        .mode-icon {
+            width: 30px;
+            height: 30px;
+            border: 1px solid currentColor;
+            border-radius: 2px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.85;
+        }
+
+        /* ── Sliders ── */
+        .slider-block {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .slider-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .slider-label { font-size: 0.7rem; color: var(--text-dim); }
+        .slider-val   { font-size: 0.7rem; color: var(--amber); }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 2px;
+            background: var(--border);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--amber);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.25); }
+
+        /* ── Color ── */
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            background: none;
+            cursor: pointer;
+            padding: 3px;
+            flex-shrink: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 2px; }
+
+        .presets {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .preset {
+            width: 22px;
+            height: 22px;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 0;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+
+        .preset:hover {
+            transform: scale(1.2);
+            border-color: var(--amber);
+        }
+
+        /* ── Save button ── */
+        .save-btn {
+            width: 100%;
+            padding: 13px;
+            background: var(--amber);
+            color: #0b0b0b;
+            border: none;
+            border-radius: var(--r);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.15rem;
+            letter-spacing: 0.18em;
+            cursor: pointer;
+            transition: background 0.18s, transform 0.15s;
+        }
+
+        .save-btn:hover:not(:disabled) {
+            background: #f0d060;
+            transform: translateY(-1px);
+        }
+
+        .save-btn:active:not(:disabled) { transform: translateY(0); }
+
+        .save-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
+        /* ── Preview ── */
+        .preview {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px;
+            background: #090909;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+        }
+
+        .preview-empty {
+            text-align: center;
+            color: var(--text-muted);
+            z-index: 1;
+        }
+
+        .empty-icon {
+            font-size: 2.8rem;
+            margin-bottom: 14px;
+            opacity: 0.25;
+        }
+
+        .empty-text {
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            line-height: 1.8;
+        }
+
+        #canvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            box-shadow: 0 12px 60px rgba(0,0,0,0.7);
+            display: none;
+            z-index: 1;
+            position: relative;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 680px) {
+            .app { flex-direction: column; }
+            .controls {
+                width: 100%;
+                min-width: 0;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            .preview { min-height: 260px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>Znak Wodny</h1>
+        <div class="header-sub">Dodaj znak wodny do zdjęcia</div>
+    </div>
+</header>
+
+<div class="app">
+    <!-- ── Lewy panel ── -->
+    <div class="controls">
+
+        <!-- Plik -->
+        <div>
+            <div class="section-label">Zdjęcie</div>
+            <div class="drop-zone" id="dropZone">
+                <input type="file" id="fileInput" accept="image/*">
+                <div class="drop-icon">&#9651;</div>
+                <div class="drop-text">Kliknij lub przeciągnij plik</div>
+                <div class="drop-filename" id="fileName"></div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Tekst -->
+        <div>
+            <div class="section-label">Tekst znaku wodnego</div>
+            <input type="text" id="watermarkText" placeholder="np. © Twoje Imię 2024" autocomplete="off">
+        </div>
+
+        <!-- Położenie -->
+        <div>
+            <div class="section-label">Położenie</div>
+            <div class="mode-group">
+
+                <button class="mode-btn active" data-mode="corner">
+                    <div class="mode-icon">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                            <rect x="1.5" y="1.5" width="19" height="19" rx="1" stroke="currentColor" stroke-width="1.2"/>
+                            <text x="18" y="19" text-anchor="end" font-size="6" fill="currentColor" font-family="Georgia,serif" font-weight="bold">Aa</text>
+                        </svg>
+                    </div>
+                    Prawy dolny róg
+                </button>
+
+                <button class="mode-btn" data-mode="center">
+                    <div class="mode-icon">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                            <rect x="1.5" y="1.5" width="19" height="19" rx="1" stroke="currentColor" stroke-width="1.2"/>
+                            <text x="11" y="13.5" text-anchor="middle" font-size="6" fill="currentColor" font-family="Georgia,serif" font-weight="bold">Aa</text>
+                        </svg>
+                    </div>
+                    Środek
+                </button>
+
+                <button class="mode-btn" data-mode="pattern">
+                    <div class="mode-icon">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                            <rect x="1.5" y="1.5" width="19" height="19" rx="1" stroke="currentColor" stroke-width="1.2"/>
+                            <text x="6"  y="9"  text-anchor="middle" font-size="4.5" fill="currentColor" font-family="Georgia,serif" opacity="0.6">Aa</text>
+                            <text x="16" y="9"  text-anchor="middle" font-size="4.5" fill="currentColor" font-family="Georgia,serif" opacity="0.6">Aa</text>
+                            <text x="6"  y="18" text-anchor="middle" font-size="4.5" fill="currentColor" font-family="Georgia,serif" opacity="0.6">Aa</text>
+                            <text x="16" y="18" text-anchor="middle" font-size="4.5" fill="currentColor" font-family="Georgia,serif" opacity="0.6">Aa</text>
+                        </svg>
+                    </div>
+                    Wzór (cały obraz)
+                </button>
+
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Wygląd -->
+        <div>
+            <div class="section-label">Wygląd</div>
+            <div class="slider-block">
+
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <span class="slider-label">Rozmiar czcionki</span>
+                        <span class="slider-val" id="fontSizeVal">48 px</span>
+                    </div>
+                    <input type="range" id="fontSize" min="10" max="250" value="48">
+                </div>
+
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <span class="slider-label">Przezroczystość</span>
+                        <span class="slider-val" id="opacityVal">50 %</span>
+                    </div>
+                    <input type="range" id="opacity" min="5" max="100" value="50">
+                </div>
+
+                <div>
+                    <div class="slider-header" style="margin-bottom:8px">
+                        <span class="slider-label">Kolor tekstu</span>
+                    </div>
+                    <div class="color-row">
+                        <input type="color" id="colorPicker" value="#ffffff">
+                        <div class="presets">
+                            <button class="preset" data-color="#ffffff" style="background:#fff" title="Biały"></button>
+                            <button class="preset" data-color="#000000" style="background:#000" title="Czarny"></button>
+                            <button class="preset" data-color="#e8c547" style="background:#e8c547" title="Złoty"></button>
+                            <button class="preset" data-color="#ff4444" style="background:#f44" title="Czerwony"></button>
+                            <button class="preset" data-color="#aaaaaa" style="background:#aaa" title="Szary"></button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div style="flex:1"></div>
+
+        <!-- Zapisz -->
+        <button class="save-btn" id="saveBtn" disabled>ZAPISZ ZDJĘCIE</button>
+
+    </div>
+
+    <!-- ── Podgląd ── -->
+    <div class="preview" id="preview">
+        <div class="preview-grid"></div>
+        <div class="preview-empty" id="previewEmpty">
+            <div class="empty-icon">&#9651;</div>
+            <div class="empty-text">Otwórz zdjęcie<br>aby zobaczyć podgląd</div>
+        </div>
+        <canvas id="canvas"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas      = document.getElementById('canvas');
+    const ctx         = canvas.getContext('2d');
+    const fileInput   = document.getElementById('fileInput');
+    const dropZone    = document.getElementById('dropZone');
+    const wmText      = document.getElementById('watermarkText');
+    const fontSlider  = document.getElementById('fontSize');
+    const fontVal     = document.getElementById('fontSizeVal');
+    const opSlider    = document.getElementById('opacity');
+    const opVal       = document.getElementById('opacityVal');
+    const colorPicker = document.getElementById('colorPicker');
+    const saveBtn     = document.getElementById('saveBtn');
+    const previewEmpty= document.getElementById('previewEmpty');
+    const fileNameEl  = document.getElementById('fileName');
+
+    let img      = null;
+    let mode     = 'corner';
+    let mimeType = 'image/jpeg';
+    let origName = 'zdjecie';
+
+    // ── Mode buttons ──────────────────────────────────────────
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            mode = btn.dataset.mode;
+            render();
+        });
+    });
+
+    // ── Color presets ─────────────────────────────────────────
+    document.querySelectorAll('.preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+            colorPicker.value = btn.dataset.color;
+            render();
+        });
+    });
+
+    // ── File drag & drop ──────────────────────────────────────
+    fileInput.addEventListener('change', e => loadFile(e.target.files[0]));
+
+    dropZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) loadFile(file);
+    });
+
+    function loadFile(file) {
+        if (!file) return;
+        mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        origName = file.name.replace(/\.[^.]+$/, '');
+        fileNameEl.textContent = file.name;
+
+        const reader = new FileReader();
+        reader.onload = e => {
+            const image = new Image();
+            image.onload = () => {
+                img = image;
+                canvas.width  = img.width;
+                canvas.height = img.height;
+                canvas.style.display = 'block';
+                previewEmpty.style.display = 'none';
+                saveBtn.disabled = false;
+                render();
+            };
+            image.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // ── Live sliders ──────────────────────────────────────────
+    fontSlider.addEventListener('input', () => {
+        fontVal.textContent = fontSlider.value + ' px';
+        render();
+    });
+
+    opSlider.addEventListener('input', () => {
+        opVal.textContent = opSlider.value + ' %';
+        render();
+    });
+
+    wmText.addEventListener('input', render);
+    colorPicker.addEventListener('input', render);
+
+    // ── Render ────────────────────────────────────────────────
+    function render() {
+        if (!img) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+
+        const text     = wmText.value.trim() || '© Znak Wodny';
+        const fontSize = parseInt(fontSlider.value);
+        const alpha    = parseInt(opSlider.value) / 100;
+        const color    = colorPicker.value;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle   = color;
+        ctx.font        = `bold ${fontSize}px "Georgia", "Times New Roman", serif`;
+
+        if      (mode === 'corner')  drawCorner(text, fontSize);
+        else if (mode === 'center')  drawCenter(text, fontSize);
+        else if (mode === 'pattern') drawPattern(text, fontSize);
+
+        ctx.restore();
+    }
+
+    function shadow(fontSize) {
+        ctx.shadowColor   = 'rgba(0,0,0,0.55)';
+        ctx.shadowBlur    = Math.max(fontSize * 0.35, 6);
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+    }
+
+    function drawCorner(text, fontSize) {
+        const pad = Math.max(fontSize * 0.6, 18);
+        ctx.textAlign    = 'right';
+        ctx.textBaseline = 'bottom';
+        shadow(fontSize);
+        ctx.fillText(text, canvas.width - pad, canvas.height - pad);
+    }
+
+    function drawCenter(text, fontSize) {
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+        shadow(fontSize);
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+    }
+
+    function drawPattern(text, fontSize) {
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+
+        const metrics    = ctx.measureText(text);
+        const cellW      = metrics.width  + fontSize * 1.8;
+        const cellH      = fontSize * 2.6;
+        const angle      = -Math.PI / 5.5;   // ~32°
+
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(angle);
+
+        const diag = Math.sqrt(canvas.width ** 2 + canvas.height ** 2);
+        const cols  = Math.ceil(diag / cellW)  + 4;
+        const rows  = Math.ceil(diag / cellH)  + 4;
+        const startX = -(cols / 2) * cellW;
+        const startY = -(rows / 2) * cellH;
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                ctx.fillText(text, startX + c * cellW, startY + r * cellH);
+            }
+        }
+
+        ctx.restore();
+    }
+
+    // ── Save ──────────────────────────────────────────────────
+    saveBtn.addEventListener('click', () => {
+        if (!img) return;
+        render();
+
+        canvas.toBlob(blob => {
+            const ext  = mimeType === 'image/png' ? 'png' : 'jpg';
+            const link = document.createElement('a');
+            link.download = `${origName}_znak_wodny.${ext}`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }, mimeType, 0.95);
+    });
+</script>
+
+</body>
+</html>
